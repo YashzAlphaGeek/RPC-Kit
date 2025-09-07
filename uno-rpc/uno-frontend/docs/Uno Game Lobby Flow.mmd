@@ -1,0 +1,30 @@
+%% File: uno_lobby_flow.mmd
+%% Description: Flowcharts for Uno Game Lobby - Join, Subscribe, Start, and Lobby Reactions
+
+flowchart TD
+    %% Player Joining Flow
+    subgraph JoinFlow["Player Joining Flow"]
+        A[Player Tab] --> B[UnoServiceImpl joinGame]
+        B --> C[JoinResponse with gameId and players]
+        C --> D[Lobby Component]
+        D --> D
+    end
+
+    %% Subscribe to Game State
+    subgraph SubscribeFlow["Subscribe to Game State"]
+        D --> E[UnoServiceImpl gameState]
+        E --> F[gameStateObservers Map]
+    end
+
+    %% Game Start Flow
+    subgraph StartFlow["Game Start Flow"]
+        G[Player clicks Start Game] --> H[UnoServiceImpl startGame]
+        H --> I[broadcastGameState with gameStarted true]
+        I --> F
+    end
+
+    %% Lobby Component Reaction
+    subgraph LobbyReaction["Lobby Component Reaction"]
+        F --> D
+        D --> J[Navigate to Game Page]
+    end

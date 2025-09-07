@@ -8,6 +8,7 @@
   align-items: center;
   justify-content: center;
   transition: transform 0.2s, box-shadow 0.2s;
+  outline: none;
 }
 
 .cardButton:hover:not(:disabled) {
@@ -16,11 +17,24 @@
 }
 
 @keyframes pulseGlow {
-  0% { box-shadow: 0 0 10px 3px rgba(255,255,255,0.4); }
-  50% { box-shadow: 0 0 18px 6px rgba(255,255,255,0.6); }
-  100% { box-shadow: 0 0 10px 3px rgba(255,255,255,0.4); }
+  0% {
+    box-shadow: 0 0 10px 3px rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 18px 6px rgba(255, 255, 255, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 10px 3px rgba(255, 255, 255, 0.4);
+  }
 }
 
 .playable {
   animation: pulseGlow 1.5s infinite ease-in-out;
+}
+
+.cardButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: scale(1);
 }

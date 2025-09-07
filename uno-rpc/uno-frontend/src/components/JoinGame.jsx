@@ -21,15 +21,13 @@ const JoinGame = ({ onJoined }) => {
       const resp = await joinGame([trimmedName], trimmedGameId || undefined);
       console.log("JoinGame response:", resp);
 
-      const allPlayers = resp.allPlayers || [];
-      const newPlayers = resp.newPlayers || [];
-
       onJoined(
         {
           gameId: resp.gameId,
-          allPlayers,
-          newPlayers,
+          allPlayers: resp.allPlayers || [], // server-provided list
+          newPlayers: resp.newPlayers || [],
           message: resp.message,
+          playerId: resp.playerId,           // ✅ server ID
         },
         trimmedName
       );

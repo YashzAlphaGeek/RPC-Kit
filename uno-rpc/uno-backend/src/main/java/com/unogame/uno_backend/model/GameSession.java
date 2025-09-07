@@ -38,6 +38,8 @@ public class GameSession {
 
     private int currentPlayerIndex = 0;
 
+    private boolean started = false;
+
     protected GameSession() {
     }
 
@@ -123,6 +125,14 @@ public class GameSession {
         if (!deck.isEmpty() && cardsOnTable.isEmpty()) {
             cardsOnTable.add(deck.remove(0));
         }
+    }
+
+    public synchronized void setStarted(boolean started) {
+        this.started = started;
+    }
+
+    public synchronized boolean isStarted() {
+        return started;
     }
 
     public synchronized void addPlayer(Player player) {

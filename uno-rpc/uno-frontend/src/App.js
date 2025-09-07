@@ -12,24 +12,24 @@ function App() {
       {!gameInfo ? (
         <JoinGame
           onJoined={(resp, playerNameInput) => {
-            // Determine current player's ID
-            const myPlayerId = resp.newPlayers?.[0]?.id || resp.allPlayers?.[0]?.id;
-
-            console.log("Joined game response:", resp);
+            console.log("[App] onJoined called with:", resp, playerNameInput);
 
             setGameInfo({
               gameId: resp.gameId,
-              playerId: myPlayerId,
+              playerId: resp.playerId,
               playerName: playerNameInput,
+              allPlayers: resp.allPlayers || [], // initial list from server
             });
           }}
         />
+
       ) : !gameStarted ? (
         <Lobby
           gameId={gameInfo.gameId}
-          playerId={gameInfo.playerId}
+          playerId={gameInfo.playerId}        // ✅ server ID
           playerName={gameInfo.playerName}
-          onStartGame={() => setGameStarted(true)} // matches Lobby prop
+          onStartGame={() => setGameStarted(true)}
+          initialPlayers={gameInfo.allPlayers}
         />
       ) : (
         <GameBoard

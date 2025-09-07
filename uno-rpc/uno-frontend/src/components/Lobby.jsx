@@ -12,23 +12,29 @@ const Lobby = ({ gameId, playerId, playerName, onStartGame }) => {
 
     const stream = subscribeGameState(
       gameId,
-      ({ players: statePlayers }) => {
-        const normalized = normalizePlayers(statePlayers);
-
+      (data) => {
+        // --- Normalize players ---
+        const normalized = normalizePlayers(data.players || []);
         setPlayers(normalized);
 
+        // --- Track newly joined players for animation ---
         setJoinedPlayers((prev) => {
           const prevIds = prev.map((p) => p.id);
           const newlyJoined = normalized.filter((p) => !prevIds.includes(p.id));
           return [...prev, ...newlyJoined];
         });
+
+        // --- Redirect all players when gameStarted === true ---
+        if (data.gameStarted) {
+          onStartGame();
+        }
       },
       (err) => console.error("Lobby stream error:", err),
       () => console.log("Lobby stream ended")
     );
 
     return () => stream?.cancel?.();
-  }, [gameId]);
+  }, [gameId, onStartGame]);
 
   const copyGameId = () => {
     navigator.clipboard.writeText(gameId).then(() => {
@@ -39,9 +45,9 @@ const Lobby = ({ gameId, playerId, playerName, onStartGame }) => {
 
   const handleStartGame = async () => {
     try {
-      const resp = await startGame(gameId);
-      console.log("Game started:", resp.message);
-      onStartGame();
+      await startGame(gameId);
+      console.log("Start game request sent to server");
+      // Do NOT call onStartGame() here; wait for the broadcast
     } catch (err) {
       console.error("Failed to start game:", err);
     }

@@ -7,7 +7,17 @@ import {
   Card as ProtoCard,
 } from "../grpc/uno_pb";
 
-const client = new UnoServiceClient("/");
+export const client = new UnoServiceClient("/");
+
+// --- Unique player ID per browser tab ---
+export const getPlayerId = () => {
+  const existingId = sessionStorage.getItem("playerId");
+  if (existingId) return existingId;
+
+  const newId = crypto.randomUUID();
+  sessionStorage.setItem("playerId", newId);
+  return newId;
+};
 
 // --- Normalize cards ---
 export const normalizeCards = (cards = [], prefix = "card") =>
@@ -31,8 +41,12 @@ export const normalizePlayers = (protoPlayers = [], prefix = "p") =>
 // --- Join a game ---
 export const joinGame = (playerNames, gameId) => {
   const req = new JoinRequest();
-  req.setPlayernamesList(playerNames); 
-  if (gameId) req.setGameid(gameId);   
+  req.setPlayernamesList(playerNames);
+  if (gameId) req.setGameid(gameId);
+
+  // Assign per-tab unique player ID
+  const playerId = getPlayerId();
+  req.setPlayerid?.(playerId);
 
   return new Promise((resolve, reject) => {
     client.joinGame(req, {}, (err, resp) => {
@@ -51,6 +65,7 @@ export const joinGame = (playerNames, gameId) => {
         gameId: resp.getGameid ? resp.getGameid() : resp.gameId,
         allPlayers: normalizePlayers(allPlayersList, "all_"),
         newPlayers: normalizePlayers(newPlayersList, "new_"),
+        playerId, // Return the current tab's player ID
       });
     });
   });
@@ -59,7 +74,7 @@ export const joinGame = (playerNames, gameId) => {
 // --- Start game ---
 export const startGame = (gameId) => {
   const req = new StartGameRequest();
-  req.setGameid(gameId); 
+  req.setGameid(gameId);
 
   return new Promise((resolve, reject) => {
     client.startGame(req, {}, (err, resp) => {
@@ -72,8 +87,9 @@ export const startGame = (gameId) => {
 // --- Play a card ---
 export const playCard = (gameId, playerId, card) => {
   const req = new PlayRequest();
-  req.setGameid(gameId);     
-  req.setPlayerid(playerId);   
+  req.setGameid(gameId);
+  req.setPlayerid(playerId);
+
   const protoCard = new ProtoCard();
   protoCard.setColor(card.color);
   protoCard.setValue(card.value);
@@ -101,7 +117,6 @@ export const subscribeGameState = (gameId, onData, onError, onEnd) => {
   const stream = client.gameState(req, {});
 
   stream.on("data", (resp) => {
- 
     const protoPlayers = resp.getPlayersList?.() || resp.players || [];
     const players = protoPlayers.map((p, i) => {
       const handList = p.getHandList?.() || p.hand || [];
@@ -136,4 +151,3 @@ export const subscribeGameState = (gameId, onData, onError, onEnd) => {
 
   return stream;
 };
-

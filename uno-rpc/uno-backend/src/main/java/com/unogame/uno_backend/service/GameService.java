@@ -98,6 +98,8 @@ public class GameService {
         // Set first player
         game.setCurrentPlayerIndex(0);
 
+         game.setStarted(true);
+
         activeGames.put(gameId, game);
         gameSessionRepository.save(game);
     }
@@ -158,6 +160,16 @@ public class GameService {
         GameSession.PlayResult result = game.playCard(playerId, card);
         gameSessionRepository.save(game);
         return result;
+    }
+
+     @Transactional(readOnly = true)
+    public boolean isGameStarted(String gameId) {
+        GameSession game = activeGames.get(gameId);
+        if (game != null)
+            return game.isStarted();
+        return gameSessionRepository.findById(gameId)
+                .map(GameSession::isStarted)
+                .orElse(false);
     }
 
     // --- DTOs ---

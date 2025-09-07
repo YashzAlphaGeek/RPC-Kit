@@ -6,44 +6,82 @@ const CardButton = ({ card, onClick, disabled, playable }) => {
 
   const { color, value } = card;
 
+  // --- UNO color palette ---
   const colorMap = {
     red: "#e74c3c",
     green: "#27ae60",
     blue: "#3498db",
     yellow: "#f1c40f",
-    black: "#000000",
-    purple: "#9b59b6",
-    orange: "#e67e22",
+    black: "#2c3e50",
+    wild: "#2c3e50",
   };
 
-  const bgColor = colorMap[color.toLowerCase()] || "#ccc";
-  const textColor = color.toLowerCase() === "yellow" ? "#333" : "#fff";
+  const bgColor = colorMap[color?.toLowerCase()] || "#ccc";
+  const textColor = color?.toLowerCase() === "yellow" ? "#333" : "#fff";
+
+  const isWild = ["wild", "wilddrawfour", "wild draw four"].includes(
+    value.toLowerCase()
+  );
 
   return (
     <button
-      className={`${styles.cardButton} ${playable ? styles.playable : ""}`}
+      className={`${styles.cardButton} ${
+        playable && !disabled ? styles.playable : ""
+      }`}
       onClick={onClick}
       disabled={disabled}
       style={{
-        backgroundColor: bgColor,
+        backgroundColor: isWild ? "#2c3e50" : bgColor,
         color: textColor,
-        border: `2px solid ${textColor}33`,
+        borderRadius: "12px",
+        padding: "20px 14px",
+        minWidth: "70px",
+        minHeight: "100px",
+        fontSize: isWild ? "1rem" : "1.6rem",
+        fontWeight: "bold",
+        border: `2px solid ${textColor}55`,
         cursor: disabled ? "not-allowed" : "pointer",
         transition: "transform 0.2s, box-shadow 0.2s",
         boxShadow: disabled
           ? "none"
           : playable
-          ? `0 0 12px 4px ${bgColor}aa` 
+          ? `0 0 16px 6px ${bgColor}aa`
           : `0 4px 8px ${bgColor}55`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+        overflow: "hidden",
       }}
       onMouseEnter={(e) => {
-        if (playable && !disabled) e.currentTarget.style.transform = "scale(1.1)";
+        if (playable && !disabled) {
+          e.currentTarget.style.transform = "translateY(-6px) scale(1.1)";
+        }
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = "scale(1)";
       }}
     >
-      {String(value).toUpperCase()}
+      {isWild ? (
+        <div
+          style={{
+            width: "60%",
+            height: "60%",
+            borderRadius: "50%",
+            overflow: "hidden",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gridTemplateRows: "1fr 1fr",
+          }}
+        >
+          <div style={{ background: "#e74c3c" }}></div>
+          <div style={{ background: "#27ae60" }}></div>
+          <div style={{ background: "#3498db" }}></div>
+          <div style={{ background: "#f1c40f" }}></div>
+        </div>
+      ) : (
+        String(value).toUpperCase()
+      )}
     </button>
   );
 };

@@ -1752,7 +1752,8 @@ cardsontableList: jspb.Message.toObjectList(msg.getCardsontableList(),
     proto.Card.toObject, includeInstance),
 currentplayerid: jspb.Message.getFieldWithDefault(msg, 4, ""),
 lastmovestatus: jspb.Message.getFieldWithDefault(msg, 5, 0),
-lastmoveinfo: jspb.Message.getFieldWithDefault(msg, 6, "")
+lastmoveinfo: jspb.Message.getFieldWithDefault(msg, 6, ""),
+gamestarted: jspb.Message.getBooleanFieldWithDefault(msg, 7, false)
   };
 
   if (includeInstance) {
@@ -1814,6 +1815,10 @@ proto.GameStateResponse.deserializeBinaryFromReader = function(msg, reader) {
     case 6:
       var value = /** @type {string} */ (reader.readStringRequireUtf8());
       msg.setLastmoveinfo(value);
+      break;
+    case 7:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setGamestarted(value);
       break;
     default:
       reader.skipField();
@@ -1885,6 +1890,13 @@ proto.GameStateResponse.serializeBinaryToWriter = function(message, writer) {
   if (f.length > 0) {
     writer.writeString(
       6,
+      f
+    );
+  }
+  f = message.getGamestarted();
+  if (f) {
+    writer.writeBool(
+      7,
       f
     );
   }
@@ -2036,6 +2048,24 @@ proto.GameStateResponse.prototype.getLastmoveinfo = function() {
  */
 proto.GameStateResponse.prototype.setLastmoveinfo = function(value) {
   return jspb.Message.setProto3StringField(this, 6, value);
+};
+
+
+/**
+ * optional bool gameStarted = 7;
+ * @return {boolean}
+ */
+proto.GameStateResponse.prototype.getGamestarted = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 7, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.GameStateResponse} returns this
+ */
+proto.GameStateResponse.prototype.setGamestarted = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 7, value);
 };
 
 

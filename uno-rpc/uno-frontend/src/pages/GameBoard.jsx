@@ -15,11 +15,11 @@ const GameBoard = ({ gameId, playerId, playerName }) => {
   useEffect(() => {
     if (!gameId) return;
 
+    // --- Subscribe to live game state updates ---
     const stream = subscribeGameState(
       gameId,
       (data) => {
-        console.log("Game state response:", data);
-
+        // Normalize players and their hands
         const normalizedPlayers = (data.players || []).map((p, i) => ({
           id: p.id,
           name: p.name,
@@ -31,18 +31,32 @@ const GameBoard = ({ gameId, playerId, playerName }) => {
         }));
 
         setPlayers(normalizedPlayers);
-        setCardsOnTable((data.cardsOnTable || []).map((c, i) => ({
-          uid: c.uid || `table_${i}_${Date.now()}`,
-          color: c.color,
-          value: c.value,
-        })));
 
-        const current = normalizedPlayers.find((p) => p.id === data.currentPlayerId) || null;
+        // Update cards on table
+        setCardsOnTable(
+          Array.isArray(data.cardsOnTable)
+            ? data.cardsOnTable.map((c, i) => ({
+                uid: c.uid || `table_${i}_${Date.now()}`,
+                color: c.color,
+                value: c.value,
+              }))
+            : []
+        );
+
+        // Update current player
+        const current =
+          normalizedPlayers.find((p) => p.id === data.currentPlayerId) ||
+          normalizedPlayers.find((p) => p.name === data.currentPlayerName) ||
+          null;
         setCurrentPlayer(current);
 
-        const me = normalizedPlayers.find((p) => p.id === playerId);
+        // Update player's own hand
+        const me =
+          normalizedPlayers.find((p) => p.id === playerId) ||
+          normalizedPlayers.find((p) => p.name === playerName);
         setMyCards(me?.cards || []);
 
+        // Update last move info
         setLastMoveInfo(data.lastMoveInfo || "");
       },
       (err) => console.error("GameBoard stream error:", err),
@@ -50,13 +64,19 @@ const GameBoard = ({ gameId, playerId, playerName }) => {
     );
 
     return () => stream?.cancel?.();
-  }, [gameId, playerId]);
+  }, [gameId, playerId, playerName]);
 
-  const isMyTurn = currentPlayer?.id === playerId;
+  // --- Check if it's the player's turn ---
+  const isMyTurn =
+    currentPlayer?.id === playerId || currentPlayer?.name === playerName;
+
   const lastCard = cardsOnTable[cardsOnTable.length - 1];
 
   const isCardPlayable = (card) =>
-    !lastCard || card.color === lastCard.color || card.value === lastCard.value || card.color === "black";
+    !lastCard ||
+    card.color === lastCard.color ||
+    card.value === lastCard.value ||
+    ["black", "wild"].includes(card.color.toLowerCase());
 
   const handlePlayCard = (card) => {
     if (!isMyTurn) return alert("Not your turn!");
@@ -74,21 +94,28 @@ const GameBoard = ({ gameId, playerId, playerName }) => {
           currentPlayer={currentPlayer || { id: playerId, name: playerName }}
           gameId={gameId}
         />
-        {lastMoveInfo && <p className={styles.lastMove}>Last move: {lastMoveInfo}</p>}
+        {lastMoveInfo && (
+          <p className={styles.lastMove}>Last move: {lastMoveInfo}</p>
+        )}
       </div>
 
       <div className={styles.mainArea}>
         <div className={styles.roundTable}>
           {players.map((p, index) => {
             const angle = (360 / players.length) * index;
-            const isCurrent = p.id === currentPlayer?.id;
-            const isMe = p.id === playerId;
+            const isCurrent =
+              p.id === currentPlayer?.id || p.name === currentPlayer?.name;
+            const isMe = p.id === playerId || p.name === playerName;
 
             return (
               <div
                 key={p.id}
-                className={`${styles.playerCircle} ${isCurrent ? styles.currentTurn : ""} ${isMe ? styles.selfPlayer : ""}`}
-                style={{ transform: `rotate(${angle}deg) translate(${radius}px) rotate(-${angle}deg)` }}
+                className={`${styles.playerCircle} ${
+                  isCurrent ? styles.currentTurn : ""
+                } ${isMe ? styles.selfPlayer : ""}`}
+                style={{
+                  transform: `rotate(${angle}deg) translate(${radius}px) rotate(-${angle}deg)`,
+                }}
                 data-color={p.cards?.[0]?.color || "gray"}
               >
                 <div className={styles.playerName}>{p.name}</div>
@@ -125,7 +152,9 @@ const GameBoard = ({ gameId, playerId, playerName }) => {
                   onClick={() => handlePlayCard(c)}
                   disabled={!isMyTurn}
                   playable={isMyTurn && isCardPlayable(c)}
-                  className={isMyTurn && isCardPlayable(c) ? styles.animateCard : ""}
+                  className={
+                    isMyTurn && isCardPlayable(c) ? styles.animateCard : ""
+                  }
                 />
               ))
             ) : (
